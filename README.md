@@ -32,11 +32,8 @@ npm or yarn (Package manager)
 Before starting, it is crucial to organize the uploaded files into separate directories for the backend and frontend.
 
 1. Project Cloning
-Bash
+<img width="362" height="96" alt="image" src="https://github.com/user-attachments/assets/1aeefb7c-f679-4903-9bc2-886da4ac958b" />
 
-# Clone the repository
-git clone <YOUR_REPOSITORY_URL>
-cd kheti-vaani
 2. Backend Setup (FastAPI & Machine Learning)
 The backend handles the API logic, communication with the AI/LLM, and serving the machine learning predictions.
 
