@@ -3,7 +3,7 @@ import google.generativeai as genai
 import os
 
 # Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", "AIzaSyCAC-IaVXi3-K9Q4SfBq5Q0biweeOkqsmM"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 def translate_text(text: str, target_language: str) -> str:
