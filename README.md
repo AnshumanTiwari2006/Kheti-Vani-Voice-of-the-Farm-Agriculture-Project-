@@ -41,7 +41,7 @@ Before starting, it is crucial to organize the uploaded files into separate dire
 ```bash
 # Clone the repository
 git clone <YOUR_REPOSITORY_URL>
-cd kheti-vaani```
+cd kheti-vaani
 2. Backend Setup (FastAPI & Machine Learning)
 The backend handles the API logic, communication with the AI/LLM, and serving the machine learning predictions.
 
@@ -176,5 +176,3 @@ git push origin feature/AmazingFeature
 # Then open a Pull Request
 📄 License
 This project is licensed under the MIT License — see the LICENSE file for details.
-
-(You should create a LICENSE file and choose a license that suits your project.)
