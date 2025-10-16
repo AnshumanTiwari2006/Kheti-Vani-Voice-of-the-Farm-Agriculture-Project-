@@ -49,43 +49,25 @@ crop_yield_50000.csv
 
 A. Environment and Dependencies
 Navigate to the backend directory:
-
-Bash
-
-cd backend
+<img width="167" height="50" alt="image" src="https://github.com/user-attachments/assets/78777376-ba90-4de5-87f9-ca0ce5e29f0d" />
 Create a Python virtual environment and activate it:
-
-Bash
-
-python -m venv venv
-# On Windows
-.\venv\Scripts\activate
-# On macOS/Linux
-source venv/bin/activate
+<img width="320" height="142" alt="image" src="https://github.com/user-attachments/assets/9627d0d0-7b6d-4a9d-b052-f4149e19b500" />
 Install the required dependencies:
+<img width="381" height="40" alt="image" src="https://github.com/user-attachments/assets/cbb6d0a2-cb20-4035-9b1c-a86a3c20d4d7" />
 
-Bash
-
-pip install -r requirements.txt
 B. Machine Learning Model Generation
 The app.py file requires a pre-trained and pickled ML model named crop_yield_model.pkl to load at startup. You must first run your model training script to generate this file from the provided dataset.
 
 Download and place your model training script (which utilizes the crop_yield_50000.csv dataset and saves the output as crop_yield_model.pkl) into the backend/ directory.
 
 Execute the training script:
+<img width="615" height="67" alt="image" src="https://github.com/user-attachments/assets/1a2dc7fe-cf84-4837-ad1a-628105534b35" />
 
-Bash
-
-# Assuming your training script is named train_model.py
-python train_model.py
 This step is MANDATORY for the app to function, as app.py automatically loads the generated crop_yield_model.pkl file.
 
 C. Run the Backend Server
 Start the FastAPI server with auto-reloading:
-
-Bash
-
-uvicorn app:app --reload
+<img width="282" height="40" alt="image" src="https://github.com/user-attachments/assets/e534f784-3867-435a-bb8d-c281691f3938" />
 The backend API will now be running, typically accessible at http://127.0.0.1:8000.
 
 3. Frontend Setup (React/TypeScript)
@@ -94,51 +76,17 @@ The frontend provides the user interface for inputting farm details and viewing 
 Assumption: Please ensure your frontend files (e.g., index.tsx, AdvisoryCard.tsx, etc.) are placed in the appropriate frontend structure (e.g., inside a frontend/ directory, with components in frontend/src/components).
 
 Navigate to the frontend directory:
-
-Bash
-
-cd ../frontend # Adjust path as necessary
+<img width="477" height="53" alt="image" src="https://github.com/user-attachments/assets/9defb4e8-83b8-435b-bc1b-7f3af127eb90" />
 Install the Node.js dependencies:
-
-Bash
-
-npm install
-# or
-yarn install
+<img width="202" height="96" alt="image" src="https://github.com/user-attachments/assets/5ee4f501-9656-436a-ab38-e038efd1ec1e" />
 Run the Development Server:
+<img width="198" height="88" alt="image" src="https://github.com/user-attachments/assets/01810e75-5fc8-4afa-ace9-673d7ea54e45" />
 
-Bash
-
-npm run dev
-# or
-yarn dev
 The frontend application will now be running, typically accessible at http://localhost:3000 (or another port specified by your frontend framework).
 
 📁 Project Structure (Recommended)
 For a clean and maintainable project, the repository should be structured as follows:
-
-kheti-vaani/
-├── backend/
-│   ├── app.py             # FastAPI entry point
-│   ├── requirements.txt   # Python dependencies
-│   ├── crop_yield_50000.csv # Dataset for ML training
-│   ├── crop_yield_model.pkl # Generated ML model (after training)
-│   └── train_model.py     # (User must provide) Script to train ML model
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── AdvisoryCard.tsx
-│   │   │   ├── FilterDropdown.tsx
-│   │   │   ├── FiltersSection.tsx
-│   │   │   └── GuideModal.tsx
-│   │   ├── pages/
-│   │   │   ├── index.tsx
-│   │   │   └── NotFound.tsx
-│   │   └── ...
-│   ├── package.json
-│   └── tsconfig.json
-└── README.md
+<img width="816" height="541" alt="image" src="https://github.com/user-attachments/assets/d4076108-060b-46b6-b966-ba6fbf18e525" />
 🤝 Contribution
 We welcome contributions to Kheti Vaani! If you have suggestions for new features, bug fixes, or improvements to the ML model, please follow these steps:
 
