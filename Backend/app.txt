@@ -1,0 +1,1325 @@
+# from fastapi import FastAPI
+# from pydantic import BaseModel
+# import os
+# import google.generativeai as genai
+# import requests
+# from datetime import datetime
+# from typing import Dict, Any
+# from fastapi.middleware.cors import CORSMiddleware
+
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # Replace "*" with your frontend's URL for better security
+#     allow_credentials=True,
+#     allow_methods=["*"],  # Allow all HTTP methods
+#     allow_headers=["*"],  # Allow all headers
+# )
+
+# class Filters(BaseModel):
+#     harvest: str = "all"
+#     soil: str = "all"
+#     season: str = "all"
+#     irrigation: str = "all"
+#     fertilizer: str = "all"
+#     pests_diseases: str = "all"
+#     state: str = "Uttar Pradesh"
+#     district: str = "Lucknow"
+#     crop: str = "paddy"
+
+# # Mapping for categorical filters to numerical values for regression (simplified)
+# soil_map = {"all": 1, "alluvial": 1, "black": 2, "red": 3, "other": 4}
+# season_map = {"all": 1, "kharif": 1, "rabi": 2, "zaid": 3}
+# irrigation_map = {"all": 1, "yes": 1, "no": 0}
+# fertilizer_map = {"all": 1, "organic": 1, "chemical": 2, "none": 0}
+# pests_map = {"all": 0, "none": 0, "mild": 1, "severe": 2}
+
+# # City coordinates for weather (example for some districts in UP)
+# city_coords = {
+#     "Lucknow": {"lat": 26.8467, "lon": 80.9462},
+#     "Kanpur": {"lat": 26.4499, "lon": 80.3319},
+#     "Agra": {"lat": 27.1767, "lon": 78.0081},
+#     # Add more as needed
+# }
+
+# @app.post("/predict_and_recommend")
+# def predict_and_recommend(filters: Filters) -> Dict[str, Any]:
+#     """
+#     Endpoint to generate recommendations using Gemini AI.
+#     Fetches real-time weather and market price data.
+#     """
+#     # Step 1: Fetch current weather using Open-Meteo API (free, no key needed)
+#     coords = city_coords.get(filters.district, city_coords["Lucknow"])  # Default to Lucknow
+#     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={coords['lat']}&longitude={coords['lon']}&current_weather=true&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=Asia/Kolkata"
+#     try:
+#         weather_response = requests.get(weather_url)
+#         weather_data = weather_response.json()
+#         current_temp = weather_data['current_weather']['temperature']
+#         daily_max = weather_data['daily']['temperature_2m_max'][0]
+#         daily_min = weather_data['daily']['temperature_2m_min'][0]
+#         precipitation = weather_data['daily']['precipitation_sum'][0]
+#         weather_summary = f"Current temperature: {current_temp}°C. Today's max/min: {daily_max}/{daily_min}°C. Precipitation: {precipitation}mm."
+#     except Exception as e:
+#         weather_summary = "Unable to fetch weather data. Please check connection."
+
+#     # Step 2: Fetch market price (scrape from agmarknet or use placeholder from recent data)
+#     current_date = datetime.now().strftime("%d-%m-%Y")
+#     market_url = f"https://agmarknet.gov.in/SearchCmmMkt.aspx?Tx_Commodity=23&Tx_State={filters.state}&Tx_District=0&Tx_Market=0&DateFrom=01-09-2025&DateTo={current_date}&Tx_Trend=0&Tx_CommodityHead=Paddy&Tx_StateHead={filters.state}&Tx_DistrictHead=--Select--&Tx_MarketHead=--Select--"
+#     try:
+#         market_price = 2350  # Placeholder price
+#         market_summary = f"Current market price for {filters.crop} in {filters.state}: ₹{market_price}/Quintal."
+#     except Exception:
+#         market_summary = "Unable to fetch market price."
+
+#     # Step 3: Generate AI advice using Gemini
+#     genai.configure(api_key="AIzaSyCAC-IaVXi3-K9Q4SfBq5Q0biweeOkqsmM")
+#     gemini_model = genai.GenerativeModel("gemini-2.0-flash")  # Or use 'gemini-pro'
+#     prompt = f"""
+#     Provide expert farming advice for a farmer in {filters.state}, {filters.district}, India.
+#     Crop: {filters.crop}
+#     Filters: Harvest={filters.harvest}, Soil={filters.soil}, Season={filters.season}, Irrigation={filters.irrigation}, Fertilizer={filters.fertilizer}, Pests/Diseases={filters.pests_diseases}
+#     Current weather: {weather_summary}
+#     Market price: {market_summary}
+#     Include recommendations on soil moisture, watering, insecticides, and any other relevant tips. Make it concise and actionable.
+#     """
+#     try:
+#         response = gemini_model.generate_content(prompt)
+#         ai_advice = response.text
+#     except Exception as e:
+#         ai_advice = "Unable to generate AI advice. Please check Gemini API key."
+
+#     # Step 4: Add fun element
+#     fun_fact = "Fun fact: Paddy crops can help in carbon sequestration! Keep farming green! 🌾"
+
+#     # Compile recommendation message
+#     recommendation = f"""
+#     {ai_advice}
+
+#     Additional Details:
+#     - Weather: {weather_summary}
+#     - Market Price: {market_summary}
+
+#     {fun_fact}
+#     """
+
+#     return {"recommendation": recommendation}
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+
+
+
+# ========================================================================================
+# from fastapi import FastAPI, HTTPException
+# from pydantic import BaseModel
+# import google.generativeai as genai
+# import requests
+# from typing import Dict, Any
+# from fastapi.middleware.cors import CORSMiddleware
+
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# class Filters(BaseModel):
+#     harvest: str = "all"
+#     soil: str = "all"
+#     season: str = "all"
+#     irrigation: str = "all"
+#     fertilizer: str = "all"
+#     pests_diseases: str = "all"
+#     state: str = "Uttar Pradesh"
+#     district: str = "Lucknow"
+#     crop: str = "paddy"
+#     language: str = "en"  # 'hi', 'en', 'or'
+
+# # Language mapping
+# LANG_MAP = {
+#     "hi": "Hindi",
+#     "en": "English",
+#     "or": "Odia"
+# }
+
+# # Configure Gemini
+# genai.configure(api_key="AIzaSyCAC-IaVXi3-K9Q4SfBq5Q0biweeOkqsmM")
+# model = genai.GenerativeModel("gemini-1.5-flash")
+
+# @app.post("/predict_and_recommend")
+# def predict_and_recommend(filters: Filters) -> Dict[str, Any]:
+#     lang_name = LANG_MAP.get(filters.language, "English")
+
+#     # --- Step 1: Get Coordinates using Gemini ---
+#     coord_prompt = f"""
+#     What are the latitude and longitude of {filters.district}, {filters.state}, India?
+#     Respond in JSON format: {{ "lat": value, "lon": value }}.
+#     If unsure, give best estimate.
+#     """
+#     try:
+#         coord_response = model.generate_content(coord_prompt)
+#         import json
+#         coords = json.loads(coord_response.text.strip())
+#         lat, lon = coords["lat"], coords["lon"]
+#     except Exception as e:
+#         # Fallback to Lucknow if Gemini fails
+#         lat, lon = 26.8467, 80.9462
+
+#     # --- Step 2: Fetch Real Weather ---
+#     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&daily=temperature_2m_max,precipitation_sum&timezone=Asia/Kolkata"
+#     try:
+#         weather_res = requests.get(weather_url, timeout=5)
+#         w = weather_res.json()
+#         temp = w['current_weather']['temperature']
+#         humidity = w['current_weather'].get('relative_humidity', 65)
+#         rain = w['daily']['precipitation_sum'][0]
+#     except:
+#         temp, humidity, rain = 28, 65, 12
+
+#     # --- Step 3: Predict Soil Moisture ---
+#     soil_prompt = f"""
+#     Based on {filters.district}, {filters.state}, temperature {temp}°C, humidity {humidity}%, 
+#     soil type {filters.soil}, season {filters.season}, and irrigation {filters.irrigation},
+#     estimate soil moisture percentage (0-100%). Respond with only the number.
+#     """
+#     try:
+#         soil_res = model.generate_content(soil_prompt)
+#         soil_moisture = float(soil_res.text.strip())
+#     except:
+#         soil_moisture = 78
+
+#     # --- Step 4: Predict Market Price ---
+#     price_prompt = f"""
+#     What is the current market price (₹ per quintal) of {filters.crop} in {filters.district}, {filters.state}?
+#     Respond with only the number.
+#     """
+#     try:
+#         price_res = model.generate_content(price_prompt)
+#         market_price = int(price_res.text.strip())
+#     except:
+#         market_price = 2350
+
+#     # --- Step 5: Predict Yield Improvement ---
+#     yield_prompt = f"""
+#     Based on {filters.crop}, soil: {filters.soil}, season: {filters.season}, 
+#     irrigation: {filters.irrigation}, fertilizer: {filters.fertilizer}, 
+#     pests: {filters.pests_diseases}, predict yield improvement over average as a number (e.g., 25 for 25% increase).
+#     """
+#     try:
+#         yield_res = model.generate_content(yield_prompt)
+#         yield_improvement = float(yield_res.text.strip())
+#     except:
+#         yield_improvement = 25
+
+#     # --- Step 6: Generate 10 AI Suggestions ---
+#     ai_prompt = f"""
+#     You are an expert farming advisor. For a farmer growing {filters.crop} in {filters.district}, {filters.state},
+#     provide exactly 10 concise, actionable bullet point suggestions in {lang_name}.
+#     Consider:
+#     - Soil: {filters.soil}
+#     - Season: {filters.season}
+#     - Irrigation: {filters.irrigation}
+#     - Fertilizer: {filters.fertilizer}
+#     - Pests: {filters.pests_diseases}
+#     - Weather: {temp}°C, Humidity: {humidity}%, Rain: {rain}mm
+#     - Soil Moisture: {soil_moisture:.1f}%
+
+#     Format:
+#     • [suggestion 1]
+#     • [suggestion 2]
+#     ...
+#     • [suggestion 10]
+
+#     Only 10 bullets. No extra text.
+#     """
+
+#     try:
+#         ai_res = model.generate_content(ai_prompt)
+#         suggestions = ai_res.text.strip()
+#         bullets = [line.strip() for line in suggestions.split('\n') if line.strip().startswith('•')]
+#         if len(bullets) > 10:
+#             bullets = bullets[:10]
+#         elif len(bullets) < 10:
+#             fill_prompt = f"Generate {10 - len(bullets)} more bullet points in {lang_name}."
+#             fill_res = model.generate_content(fill_prompt)
+#             more = [line.strip() for line in fill_res.text.split('\n') if line.strip().startswith('•')]
+#             bullets.extend(more[:10 - len(bullets)])
+#         ai_suggestions = '\n'.join(bullets)
+#     except:
+#         # Fallback per language
+#         fallbacks = {
+#             "hi": [f"• {i+1}" for i in range(10)],
+#             "en": [f"• Tip {i+1}" for i in range(10)],
+#             "or": [f"• ସୂଚନା {i+1}" for i in range(10)]
+#         }
+#         ai_suggestions = '\n'.join(fallbacks.get(filters.language, fallbacks["en"]))
+
+#     # --- Step 7: Fun Fact ---
+#     fact_prompt = f"Give one fun agricultural fact in {lang_name}. Start with 'Fun fact:'"
+#     try:
+#         fact_res = model.generate_content(fact_prompt)
+#         fun_fact = fact_res.text.strip()
+#     except:
+#         fun_fact = "Fun fact: Crop rotation can increase yield by up to 25%! 🌾"
+
+#     # --- Final Output ---
+#     recommendation = f"""
+# {ai_suggestions}
+
+# Additional Details:
+# - Weather: {temp}°C, Humidity: {humidity}%, Rain: {rain}mm
+# - Soil Moisture: {soil_moisture:.1f}%
+# - Market Price: ₹{market_price}/quintal for {filters.crop}
+# - Expected Yield: {abs(yield_improvement):.1f}% {'increase' if yield_improvement > 0 else 'decrease'} from average
+
+# {fun_fact}
+# """
+
+#     return {
+#         "recommendation": recommendation,
+#         "dashboard": {
+#             "coordinates": {"lat": lat, "lon": lon},
+#             "expected_yield": {
+#                 "value": round(yield_improvement),
+#                 "trend": "increase" if yield_improvement > 0 else "decrease" if yield_improvement < 0 else "stable"
+#             },
+#             "soil_moisture": {"value": round(soil_moisture), "unit": "%"},
+#             "weather": {
+#                 "temperature": temp,
+#                 "humidity": humidity,
+#                 "rainfall": rain,
+#                 "condition": "partly_cloudy"
+#             },
+#             "market_price": {
+#                 "price": market_price,
+#                 "currency": "₹",
+#                 "unit": "quintal"
+#             }
+#         }
+#     }
+
+
+
+# ========================================Code where the transaltor file is added for better output================================================
+# # app.py
+# from fastapi import FastAPI, HTTPException
+# from pydantic import BaseModel
+# import os
+# import google.generativeai as genai
+# import requests
+# from datetime import datetime
+# from typing import Dict, Any
+# from fastapi.middleware.cors import CORSMiddleware
+
+# # Import translator
+# from translator import get_translated_ui_labels
+
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# class Filters(BaseModel):
+#     harvest: str = "all"
+#     soil: str = "all"
+#     season: str = "all"
+#     irrigation: str = "all"
+#     fertilizer: str = "all"
+#     pests_diseases: str = "all"
+#     state: str = "Uttar Pradesh"
+#     district: str = "Lucknow"
+#     crop: str = "paddy"
+#     language: str = "en"  # 'hi', 'en', 'or'
+
+# # City coordinates (expand as needed)
+# city_coords = {
+#     "Lucknow": {"lat": 26.8467, "lon": 80.9462},
+#     "Kanpur": {"lat": 26.4499, "lon": 80.3319},
+#     "Agra": {"lat": 27.1767, "lon": 78.0081},
+#     "Bhopal": {"lat": 23.2599, "lon": 77.4122},
+#     "Indore": {"lat": 22.7196, "lon": 75.8577},
+#     "Jaipur": {"lat": 26.9124, "lon": 75.7877},
+#     "Niwari": {"lat": 23.8467, "lon": 78.7533},
+# }
+
+
+# # Configure Gemini
+# genai.configure(api_key=os.getenv("GEMINI_API_KEY", "AIzaSyCAC-IaVXi3-K9Q4SfBq5Q0biweeOkqsmM"))
+# gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+
+# @app.post("/predict_and_recommend")
+# def predict_and_recommend(filters: Filters) -> Dict[str, Any]:
+#     lang = filters.language
+    
+#     # --- Step 1: Get Coordinates ---
+#     if filters.district in city_coords:
+#         lat, lon = city_coords[filters.district]["lat"], city_coords[filters.district]["lon"]
+#     else:
+#         # Ask Gemini for coordinates
+#         try:
+#             coord_prompt = f"Latitude and longitude of {filters.district}, {filters.state}, India as JSON {{'lat': x, 'lon': y}}"
+#             coord_response = gemini_model.generate_content(coord_prompt)
+#             import json
+#             coords = json.loads(coord_response.text)
+#             lat, lon = coords["lat"], coords["lon"]
+#         except:
+#             lat, lon = 26.8467, 80.9462  # Lucknow fallback
+
+#     # --- Step 2: Fetch Weather ---
+#     weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true&daily=temperature_2m_max,precipitation_sum&timezone=Asia/Kolkata"
+#     try:
+#         weather_res = requests.get(weather_url, timeout=5)
+#         w = weather_res.json()
+#         temp = w['current_weather']['temperature']
+#         humidity = w['current_weather'].get('relative_humidity', 65)
+#         rain = w['daily']['precipitation_sum'][0]
+#     except:
+#         temp, humidity, rain = 28, 65, 12
+
+#     # --- Step 3: Predict Soil Moisture ---
+#     try:
+#         soil_prompt = f"Soil moisture % in {filters.district}, {filters.state} with {filters.soil} soil, {filters.irrigation} irrigation, {temp}°C"
+#         soil_res = gemini_model.generate_content(soil_prompt)
+#         soil_moisture = float(soil_res.text.strip())
+#     except:
+#         soil_moisture = 78
+
+#     # --- Step 4: Predict Market Price ---
+#     try:
+#         price_prompt = f"Current market price ₹/quintal for {filters.crop} in {filters.district}, {filters.state}"
+#         price_res = gemini_model.generate_content(price_prompt)
+#         market_price = int(price_res.text.strip())
+#     except:
+#         market_price = 2350
+
+#     # --- Step 5: Predict Yield Improvement ---
+#     try:
+#         yield_prompt = f"Yield improvement % for {filters.crop} in {filters.state} with {filters.soil} soil, {filters.season} season"
+#         yield_res = gemini_model.generate_content(yield_prompt)
+#         yield_improvement = float(yield_res.text.strip())
+#     except:
+#         yield_improvement = 25
+
+#     # --- Step 6: Generate 10 AI Suggestions ---
+#     lang_names = {"hi": "Hindi", "en": "English", "or": "Odia"}
+#     lang_name = lang_names.get(lang, "English")
+    
+#     ai_prompt = f"""
+#     You are an expert agricultural scientist and field extension officer with 30 years of experience in Indian farming.
+#     Provide exactly 10 concise, practical, and actionable bullet point suggestions for a real farmer in {filters.district}, {filters.state}, India.
+#     The farmer is growing {filters.crop} with:
+#         - Soil: {filters.soil}
+#         - Season: {filters.season}
+#         - Irrigation: {filters.irrigation}
+#         - Fertilizer: {filters.fertilizer}
+#         - Pests/Diseases: {filters.pests_diseases}
+#         - Weather: Temperature {temp}°C, Humidity {humidity}%, Rainfall {rain}mm
+
+#     Guidelines:
+#         1. Use only real, proven, low-cost farming techniques used in India.
+#         2. If the farmer's choice is suboptimal (e.g., "Rain Fed" irrigation in dry area), suggest a better alternative (e.g., "Consider drip irrigation").
+#         3. Recommend specific inputs: NOT "use fertilizer" → "Use vermicompost or cow dung manure"
+#         4. Suggest real pest control: NOT "control pests" → "Spray neem oil (5 ml per liter) every 7 days"
+#         5. Include timing: "Apply irrigation between 6–8 AM"
+#         6. Do NOT use generic tips like "Tip 1", "Good practice", or "Consider options".
+#         7. Format:
+#             • [specific, actionable suggestion]
+#             • [another real suggestion]
+#             ...
+#             • [10th suggestion] 
+#         8. Output ONLY 10 bullet points. No headings, no explanations, no fun facts.
+#         9. Language: {lang_name}
+
+#     Example (for poor irrigation):
+#         • Switch from rain-fed to drip irrigation to save 40% water and increase yield
+#         • Apply mulch using rice straw to retain soil moisture  
+#     """
+    
+#     try:
+#         ai_res = gemini_model.generate_content(ai_prompt)
+#         suggestions = "\n".join([
+#             line.strip() for line in ai_res.text.split('\n') 
+#             if line.strip().startswith('•')
+#         ][:10])
+#     except:
+#         suggestions = "\n• Tip 1\n• Tip 2\n• Tip 3\n• Tip 4\n• Tip 5\n• Tip 6\n• Tip 7\n• Tip 8\n• Tip 9\n• Tip 10"
+
+#     # --- Step 7: Fun Fact ---
+#     try:
+#         fact_prompt = f"Fun agricultural fact in {lang_name}"
+#         fact_res = gemini_model.generate_content(fact_prompt)
+#         fun_fact = fact_res.text.strip()
+#     except:
+#         fun_fact = "Fun fact: Crop rotation can increase yield by up to 25%! 🌾"
+
+#     # --- Step 8: Get Translated UI Labels ---
+#     ui_labels = get_translated_ui_labels(lang)
+
+#     # --- Final Response ---
+#     recommendation = f"""
+# {suggestions}
+
+# Additional Details:
+# - Weather: {temp}°C, Humidity: {humidity}%, Rain: {rain}mm
+# - Soil Moisture: {soil_moisture:.1f}%
+# - Market Price: ₹{market_price}/quintal for {filters.crop}
+# - Expected Yield: {abs(yield_improvement):.1f}% {'increase' if yield_improvement > 0 else 'decrease'}
+
+# {fun_fact}
+# """
+
+#     return {
+#         "recommendation": recommendation,
+#         "dashboard": {
+#             "expected_yield": {
+#                 "value": round(yield_improvement),
+#                 "trend": "increase" if yield_improvement > 0 else "decrease"
+#             },
+#             "soil_moisture": {"value": round(soil_moisture), "unit": "%"},
+#             "weather": {
+#                 "temperature": temp,
+#                 "humidity": humidity,
+#                 "rainfall": rain,
+#                 "condition": "partly_cloudy"
+#             },
+#             "market_price": {
+#                 "price": market_price,
+#                 "currency": "₹",
+#                 "unit": "quintal"
+#             }
+#         },
+#         "ui_labels": ui_labels
+#     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ======================Getting Output============================
+# from fastapi import FastAPI
+# import pandas as pd
+# from pydantic import BaseModel
+# import os
+# import requests
+# from datetime import datetime
+# from typing import Dict, Any, Optional
+# from fastapi.middleware.cors import CORSMiddleware
+# import geocoder
+# import json
+# import joblib
+
+# # ------------------ Load ML model ------------------
+# ml_model = joblib.load("crop_yield_model.pkl")
+
+# def predict_yield_ml(crop: str, district: str, region: str, irrigation: str, weather_data: Dict) -> float:
+#     """Predict yield (tons/ha) using saved ML model."""
+#     sample = pd.DataFrame([{
+#         "state": region,
+#         "district": district,
+#         "crop": crop,
+#         "irrigation_source": irrigation,
+#         "rainfall_mm": weather_data.get("precipitation_sum", 0),
+#         "avg_temp_C": weather_data.get("temperature_2m", 0),
+#         "soil_ph": 6.5,
+#         "soil_organic_carbon_pct": 0.8,
+#         "irrigation_pct": 60,
+#         "fertilizer_kg_ha": 150
+#     }])
+#     prediction = ml_model.predict(sample)[0]
+#     return round(prediction, 2)
+
+# # ------------------ FastAPI init ------------------
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # Change to frontend URL in production
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # ------------------ Request Schema ------------------
+# class FilterState(BaseModel):
+#     cropType: str = ""
+#     soilType: str = ""
+#     season: str = ""
+#     irrigation: str = ""
+#     fertilizer: str = ""
+#     pestDisease: str = ""
+#     region: str = ""
+#     district: str = ""
+#     budget: str = ""
+
+# # ------------------ Utility functions ------------------
+# def get_coordinates(district: str, state: str) -> Optional[Dict[str, float]]:
+#     try:
+#         location = geocoder.arcgis(f"{district}, {state}, India")
+#         if location.ok:
+#             return {"lat": location.lat, "lng": location.lng}
+#         return None
+#     except Exception:
+#         return None
+
+# def get_weather_data(lat: float, lng: float) -> Dict[str, Any]:
+#     try:
+#         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto"
+#         response = requests.get(url)
+#         data = response.json()
+
+#         weather_codes = {
+#             0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+#             45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+#             55: "Dense drizzle", 61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+#             71: "Slight snow fall", 73: "Moderate snow fall", 75: "Heavy snow fall",
+#             80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
+#             95: "Thunderstorm"
+#         }
+
+#         current = data.get("current", {})
+#         daily = data.get("daily", {})
+
+#         return {
+#             "temperature": current.get("temperature_2m", 0),
+#             "humidity": current.get("relative_humidity_2m", 0),
+#             "precipitation": current.get("precipitation", 0),
+#             "weather_condition": weather_codes.get(current.get("weather_code", 0), "Unknown"),
+#             "max_temp": daily.get("temperature_2m_max", [0])[0],
+#             "min_temp": daily.get("temperature_2m_min", [0])[0],
+#             "precipitation_sum": daily.get("precipitation_sum", [0])[0]
+#         }
+#     except Exception as e:
+#         print(f"Weather API error: {e}")
+#         return {}
+
+# def get_soil_data(district: str, state: str, crop: str) -> Dict[str, Any]:
+#     # Static fallback soil info (so no LLM crash)
+#     return {
+#         "soil_moisture": 65,
+#         "ph_level": 6.5,
+#         "nitrogen_level": "medium",
+#         "phosphorus_level": "medium",
+#         "improvement_suggestions": [
+#             "Add organic compost to improve soil structure",
+#             "Use cover crops to prevent erosion",
+#             "Test soil regularly to monitor nutrient levels"
+#         ]
+#     }
+
+# def get_market_data(district: str, state: str, crop: str) -> Dict[str, Any]:
+#     # Static fallback market info
+#     return {
+#         "current_price": 2500,
+#         "price_trend": "stable",
+#         "nearby_districts": [
+#             {"name": "District 1", "price": 2450},
+#             {"name": "District 2", "price": 2550},
+#             {"name": "District 3", "price": 2400},
+#             {"name": "District 4", "price": 2600},
+#             {"name": "District 5", "price": 2500},
+#             {"name": "District 6", "price": 2480}
+#         ],
+#         "market_trends": [
+#             "Demand is steady with normal supply",
+#             "Prices expected to remain stable in coming weeks",
+#             "Good quality produce fetching premium prices"
+#         ]
+#     }
+
+# def get_yield_prediction(filters: FilterState, weather_data: Dict, soil_data: Dict) -> Dict[str, Any]:
+#     try:
+#         ml_yield = predict_yield_ml(
+#             filters.cropType,
+#             filters.district,
+#             filters.region,
+#             filters.irrigation,
+#             weather_data
+#         )
+#         return {
+#             "expected_yield": ml_yield,
+#             "yield_trend": "stable",
+#             "best_planting_time": "October to November",
+#             "irrigation_schedule": "Every 7-10 days depending on rainfall",
+#             "ai_suggestions": [
+#                 "Monitor soil moisture regularly",
+#                 "Apply balanced fertilizer at right growth stages",
+#                 "Implement integrated pest management"
+#             ]
+#         }
+#     except Exception as e:
+#         print(f"Yield prediction error: {e}")
+#         return {
+#             "expected_yield": 75,
+#             "yield_trend": "increasing",
+#             "best_planting_time": "October to November",
+#             "irrigation_schedule": "Every 7-10 days depending on rainfall",
+#             "ai_suggestions": [
+#                 "Monitor soil moisture regularly",
+#                 "Apply balanced fertilizer at right growth stages",
+#                 "Implement integrated pest management"
+#             ]
+#         }
+
+# # ------------------ Routes ------------------
+# @app.post("/api/advisory")
+# async def get_advisory(filters: FilterState):
+#     if not filters.district or not filters.region or not filters.cropType:
+#         return {"error": "Please select region, district and crop type to get recommendations"}
+    
+#     coords = get_coordinates(filters.district, filters.region)
+#     if not coords:
+#         return {"error": "Could not find location coordinates"}
+    
+#     weather_data = get_weather_data(coords["lat"], coords["lng"])
+#     soil_data = get_soil_data(filters.district, filters.region, filters.cropType)
+#     market_data = get_market_data(filters.district, filters.region, filters.cropType)
+#     yield_data = get_yield_prediction(filters, weather_data, soil_data)
+
+#     # ✅ Instead of LLM, return safe recommendations
+#     recommendations = [
+#         "Prepare soil with organic manure before sowing",
+#         "Plant at recommended spacing to maximize yield",
+#         "Schedule irrigation every 7-10 days depending on rainfall",
+#         "Use balanced fertilizer (NPK) at key growth stages",
+#         "Apply pest control measures proactively",
+#         "Harvest at the right moisture level for best results",
+#         "Store produce in dry, ventilated storage",
+#         "Monitor local market before selling",
+#         "Adopt crop rotation for soil health",
+#         "Use weather updates for better planning"
+#     ]
+    
+#     return {
+#         "recommendation": "\n".join([f"{i+1}. {r}" for i, r in enumerate(recommendations)]),
+#         "weather_data": weather_data,
+#         "soil_data": soil_data,
+#         "market_data": market_data,
+#         "yield_data": yield_data,
+#         "timestamp": datetime.now().isoformat()
+#     }
+
+# @app.get("/")
+# def read_root():
+#     return {"message": "Farmer Advisory API is running"}
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+# ======================== Good Code for other languages========================
+# ==============code with LLM + Prediction========================
+
+# from fastapi import FastAPI
+# import pandas as pd
+# from pydantic import BaseModel
+# import os
+# import google.generativeai as genai
+# import requests
+# from datetime import datetime  # Removed unused import
+# from typing import Dict, Any, Optional
+# from fastapi.middleware.cors import CORSMiddleware
+# import geocoder
+# import json
+# import joblib
+
+# # Load pre-trained ML model at startup
+# ml_model = joblib.load("crop_yield_model.pkl")
+
+# def predict_yield_ml(crop: str, district: str, region: str, irrigation: str, weather_data: Dict) -> float:
+#     """Predict yield (tons/ha) using saved ML model."""
+#     sample = pd.DataFrame([{
+#         "state": region,
+#         "district": district,
+#         "crop": crop,
+#         "irrigation_source": irrigation,
+#         "rainfall_mm": weather_data.get("precipitation_sum", 0),  # Get actual rainfall from weather data
+#         "avg_temp_C": weather_data.get("temperature_2m", 0),  # Get actual temperature from weather data
+#         "soil_ph": 6.5,  # Get actual soil pH from weather data
+#         "soil_organic_carbon_pct": 0.8,
+#         "irrigation_pct": 60,
+#         "fertilizer_kg_ha": 150
+#     }])
+#     prediction = ml_model.predict(sample)[0]
+#     return round(prediction, 2)
+    
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# class FilterState(BaseModel):
+#     cropType: str = ""
+#     soilType: str = ""
+#     season: str = ""
+#     irrigation: str = ""
+#     fertilizer: str = ""
+#     pestDisease: str = ""
+#     region: str = ""
+#     district: str = ""
+#     budget: str = ""
+#     language: str = "en"  # Add language field
+
+# genai.configure(api_key=os.getenv("GEMINI_API_KEY", ""))
+
+# def get_coordinates(district: str, state: str) -> Optional[Dict[str, float]]:
+#     try:
+#         location = geocoder.arcgis(f"{district}, {state}, India")
+#         if location.ok:
+#             return {"lat": location.lat, "lng": location.lng}
+#         return None
+#     except Exception:
+#         return None
+
+# def get_weather_data(lat: float, lng: float) -> Dict[str, Any]:
+#     try:
+#         url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lng}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto"
+#         response = requests.get(url)
+#         data = response.json()
+        
+#         weather_codes = {
+#             0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+#             45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+#             55: "Dense drizzle", 56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+#             61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+#             66: "Light freezing rain", 67: "Heavy freezing rain", 71: "Slight snow fall",
+#             73: "Moderate snow fall", 75: "Heavy snow fall", 77: "Snow grains",
+#             80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
+#             85: "Slight snow showers", 86: "Heavy snow showers", 95: "Thunderstorm",
+#             96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail"
+#         }
+        
+#         current = data.get("current", {})
+#         daily = data.get("daily", {})
+        
+#         weather_condition = weather_codes.get(current.get("weather_code", 0), "Unknown")
+        
+#         return {
+#             "temperature": current.get("temperature_2m", 0),
+#             "humidity": current.get("relative_humidity_2m", 0),
+#             "precipitation": current.get("precipitation", 0),
+#             "weather_condition": weather_condition,
+#             "max_temp": daily.get("temperature_2m_max", [0])[0] if daily.get("temperature_2m_max") else 0,
+#             "min_temp": daily.get("temperature_2m_min", [0])[0] if daily.get("temperature_2m_min") else 0,
+#             "precipitation_sum": daily.get("precipitation_sum", [0])[0] if daily.get("precipitation_sum") else 0
+#         }
+#     except Exception as e:
+#         print(f"Weather API error: {e}")
+#         return {}
+
+# def get_soil_data(district: str, state: str, crop: str, language: str = "en") -> Dict[str, Any]:
+#     try:
+#         model = genai.GenerativeModel("gemini-1.5-flash")
+        
+#         # Language-specific prompts
+#         if language == "hi":
+#             prompt = f"""
+#             {district}, {state} में {crop} उगाने के लिए वास्तविक मिट्टी का डेटा तैयार करें।
+#             केवल JSON प्रारूप में उत्तर दें जिसमें ये keys हों:
+#             - soil_moisture (प्रतिशत में)
+#             - ph_level (4-9 के बीच संख्या)
+#             - nitrogen_level (text: कम, मध्यम, अधिक)
+#             - phosphorus_level (text: कम, मध्यम, अधिक)  
+#             - improvement_suggestions (3 हिंदी सुझावों की array)
+            
+#             क्षेत्र और फसल के लिए वास्तविक बनाएं। केवल JSON दें, कोई अन्य text नहीं।
+#             """
+#         elif language == "or":
+#             prompt = f"""
+#             {district}, {state}ରେ {crop} ଚାଷ କରିବା ପାଇଁ ବାସ୍ତବିକ ମାଟି ତଥ୍ୟ ପ୍ରସ୍ତୁତ କରନ୍ତୁ।
+#             କେବଳ JSON ରେ ଉତ୍ତର ଦିଅନ୍ତୁ ଯେଉଁଥିରେ ଏହି keys ଥିବ:
+#             - soil_moisture (ଶତକଡ଼ାରେ)
+#             - ph_level (4-9 ମଧ୍ୟରେ ସଂଖ୍ୟା)
+#             - nitrogen_level (text: କମ୍, ମଧ୍ୟମ, ଅଧିକ)
+#             - phosphorus_level (text: କମ୍, ମଧ୍ୟମ, ଅଧିକ)
+#             - improvement_suggestions (3 ଓଡ଼ିଆ ପରାମର୍ଶର array)
+            
+#             ଅଞ୍ଚଳ ଏବଂ ଫସଲ ପାଇଁ ବାସ୍ତବିକ କରନ୍ତୁ। କେବଳ JSON ଦିଅନ୍ତୁ, ଅନ୍ୟ କୌଣସି text ନାହିଁ।
+#             """
+#         else:
+#             prompt = f"""
+#             Generate realistic soil data for {district}, {state} for growing {crop}.
+#             Provide only a JSON response with these exact keys:
+#             - soil_moisture (percentage)
+#             - ph_level (number between 4-9)
+#             - nitrogen_level (text: low, medium, high)
+#             - phosphorus_level (text: low, medium, high)
+#             - improvement_suggestions (array of 3 strings with specific suggestions)
+            
+#             Make it realistic for the region and crop. Return only JSON, no other text.
+#             """
+        
+#         response = model.generate_content(prompt)
+#         json_str = response.text.strip().replace('```json', '').replace('```', '').strip()
+#         return json.loads(json_str)
+#     except Exception as e:
+#         print(f"Soil data generation error: {e}")
+#         # Language-specific fallbacks
+#         if language == "hi":
+#             return {
+#                 "soil_moisture": 65,
+#                 "ph_level": 6.5,
+#                 "nitrogen_level": "मध्यम",
+#                 "phosphorus_level": "मध्यम",
+#                 "improvement_suggestions": [
+#                     "मिट्टी की संरचना सुधारने के लिए जैविक खाद डालें",
+#                     "मिट्टी के कटाव को रोकने के लिए आवरण फसल का उपयोग करें",
+#                     "पोषक तत्वों की निगरानी के लिए नियमित मिट्टी परीक्षण कराएं"
+#                 ]
+#             }
+#         elif language == "or":
+#             return {
+#                 "soil_moisture": 65,
+#                 "ph_level": 6.5,
+#                 "nitrogen_level": "ମଧ୍ୟମ",
+#                 "phosphorus_level": "ମଧ୍ୟମ",
+#                 "improvement_suggestions": [
+#                     "ମାଟିର ଗଠନ ଉନ୍ନତ କରିବା ପାଇଁ ଜୈବିକ ଖତ ମିଶାନ୍ତୁ",
+#                     "ମାଟିର କ୍ଷୟ ରୋକିବା ପାଇଁ ଆଚ୍ଛାଦନ ଫସଲ ବ୍ୟବହାର କରନ୍ତୁ",
+#                     "ପୋଷକ ତତ୍ତ୍ୱ ନିରୀକ୍ଷଣ ପାଇଁ ନିୟମିତ ମାଟି ପରୀକ୍ଷା କରନ୍ତୁ"
+#                 ]
+#             }
+#         else:
+#             return {
+#                 "soil_moisture": 65,
+#                 "ph_level": 6.5,
+#                 "nitrogen_level": "medium",
+#                 "phosphorus_level": "medium",
+#                 "improvement_suggestions": [
+#                     "Add organic compost to improve soil structure",
+#                     "Use cover crops to prevent erosion",
+#                     "Test soil regularly to monitor nutrient levels"
+#                 ]
+#             }
+
+# def get_market_data(district: str, state: str, crop: str, language: str = "en") -> Dict[str, Any]:
+#     try:
+#         model = genai.GenerativeModel("gemini-1.5-flash")
+        
+#         # Language-specific prompts
+#         if language == "hi":
+#             prompt = f"""
+#             {district}, {state} के पास के जिलों में {crop} का वास्तविक बाजार डेटा तैयार करें।
+#             केवल JSON प्रारूप में उत्तर दें जिसमें ये keys हों:
+#             - current_price (₹/क्विंटल में संख्या)
+#             - price_trend (text: बढ़ रहा, घट रहा, स्थिर)
+#             - nearby_districts (6 पास के जिलों की array जिसमें name और price हो)
+#             - market_trends (3 हिंदी बाजार insights की array)
+            
+#             क्षेत्र और फसल के लिए वास्तविक बनाएं। केवल JSON दें, कोई अन्य text नहीं।
+#             """
+#         elif language == "or":
+#             prompt = f"""
+#             {district}, {state} ନିକଟସ୍ଥ ଜିଲ୍ଲାମାନଙ୍କରେ {crop}ର ବାସ୍ତବିକ ବଜାର ତଥ୍ୟ ପ୍ରସ୍ତୁତ କରନ୍ତୁ।
+#             କେବଳ JSON ରେ ଉତ୍ତର ଦିଅନ୍ତୁ ଯେଉଁଥିରେ ଏହି keys ଥିବ:
+#             - current_price (₹/କ୍ୱିଣ୍ଟାଲରେ ସଂଖ୍ୟା)
+#             - price_trend (text: ବୃଦ୍ଧି, ହ୍ରାସ, ସ୍ଥିର)
+#             - nearby_districts (6 ନିକଟସ୍ଥ ଜିଲ୍ଲାର array ଯେଉଁଥିରେ name ଏବଂ price ଅଛି)
+#             - market_trends (3 ଓଡ଼ିଆ ବଜାର insights ର array)
+            
+#             ଅଞ୍ଚଳ ଏବଂ ଫସଲ ପାଇଁ ବାସ୍ତବିକ କରନ୍ତୁ। କେବଳ JSON ଦିଅନ୍ତୁ, ଅନ୍ୟ କୌଣସି text ନାହିଁ।
+#             """
+#         else:
+#             prompt = f"""
+#             Generate realistic market data for {crop} in districts near {district}, {state}.
+#             Provide only a JSON response with these exact keys:
+#             - current_price (number in ₹/quintal)
+#             - price_trend (text: increasing, decreasing, stable)
+#             - nearby_districts (array of objects with name and price for 6 nearby districts)
+#             - market_trends (array of 3 strings with current market insights)
+            
+#             Make it realistic for the region and crop. Return only JSON, no other text.
+#             """
+        
+#         response = model.generate_content(
+#             prompt,
+#             generation_config={"response_mime_type": "application/json"}
+#         )
+#         return json.loads(response.text)
+
+#     except Exception as e:
+#         print(f"Market data generation error: {e}")
+#         # Language-specific fallbacks
+#         if language == "hi":
+#             return {
+#                 "current_price": 2500,
+#                 "price_trend": "स्थिर",
+#                 "nearby_districts": [
+#                     {"name": "जिला 1", "price": 2450},
+#                     {"name": "जिला 2", "price": 2550},
+#                     {"name": "जिला 3", "price": 2400},
+#                     {"name": "जिला 4", "price": 2600},
+#                     {"name": "जिला 5", "price": 2500},
+#                     {"name": "जिला 6", "price": 2480}
+#                 ],
+#                 "market_trends": [
+#                     "सामान्य आपूर्ति के साथ मांग स्थिर है",
+#                     "आने वाले हफ्तों में कीमतें स्थिर रहने की उम्मीद",
+#                     "अच्छी गुणवत्ता वाली उपज प्रीमियम कीमत पर मिल रही"
+#                 ]
+#             }
+#         elif language == "or":
+#             return {
+#                 "current_price": 2500,
+#                 "price_trend": "ସ୍ଥିର",
+#                 "nearby_districts": [
+#                     {"name": "ଜିଲ୍ଲା ୧", "price": 2450},
+#                     {"name": "ଜିଲ୍ଲା ୨", "price": 2550},
+#                     {"name": "ଜିଲ୍ଲା ୩", "price": 2400},
+#                     {"name": "ଜିଲ୍ଲା ୪", "price": 2600},
+#                     {"name": "ଜିଲ୍ଲା ୫", "price": 2500},
+#                     {"name": "ଜିଲ୍ଲା ୬", "price": 2480}
+#                 ],
+#                 "market_trends": [
+#                     "ସାଧାରଣ ଯୋଗାଣ ସହିତ ଚାହିଦା ସ୍ଥିର ଅଛି",
+#                     "ଆଗାମୀ ସପ୍ତାହରେ ଦାମ ସ୍ଥିର ରହିବାର ଆଶା",
+#                     "ଭଲ ଗୁଣବତ୍ତା ଉତ୍ପାଦନ ପ୍ରିମିୟମ୍ ଦାମରେ ମିଳୁଛି"
+#                 ]
+#             }
+#         else:
+#             return {
+#                 "current_price": 2500,
+#                 "price_trend": "stable",
+#                 "nearby_districts": [
+#                     {"name": "District 1", "price": 2450},
+#                     {"name": "District 2", "price": 2550},
+#                     {"name": "District 3", "price": 2400},
+#                     {"name": "District 4", "price": 2600},
+#                     {"name": "District 5", "price": 2500},
+#                     {"name": "District 6", "price": 2480}
+#                 ],
+#                 "market_trends": [
+#                     "Demand is steady with normal supply",
+#                     "Prices expected to remain stable in coming weeks",
+#                     "Good quality produce fetching premium prices"
+#                 ]
+#             }
+
+# def get_yield_prediction(filters: FilterState, weather_data: Dict, soil_data: Dict) -> Dict[str, Any]:
+#     try:
+#         ml_yield = predict_yield_ml(
+#             filters.cropType,
+#             filters.district,
+#             filters.region,
+#             filters.irrigation,
+#             weather_data
+#         )
+
+#         model = genai.GenerativeModel("gemini-1.5-flash")
+        
+#         # Language-specific prompts
+#         if filters.language == "hi":
+#             prompt = f"""
+#             {filters.district}, {filters.region} में एक किसान {filters.cropType} उगा रहा है।
+#             अनुमानित उत्पादन: {ml_yield} टन/हेक्टेयर।
+#             मौसम: {weather_data}
+#             मिट्टी: {soil_data}
+#             सिंचाई: {filters.irrigation}
+
+#             केवल JSON इस सटीक प्रारूप में दें:
+#             {{
+#               "best_planting_time": "string",
+#               "irrigation_schedule": "string", 
+#               "ai_suggestions": ["string1", "string2", "string3"]
+#             }}
+#             सभी उत्तर हिंदी में दें।
+#             """
+#         elif filters.language == "or":
+#             prompt = f"""
+#             {filters.district}, {filters.region}ରେ ଜଣେ କୃଷକ {filters.cropType} ଚାଷ କରୁଛନ୍ତି।
+#             ଅନୁମାନିତ ଅମଳ: {ml_yield} ଟନ୍/ହେକ୍ଟର।
+#             ପାଣିପାଗ: {weather_data}
+#             ମାଟି: {soil_data}
+#             ଜଳସେଚନ: {filters.irrigation}
+
+#             କେବଳ JSON ଏହି ସଠିକ୍ ଫର୍ମାଟରେ ଦିଅନ୍ତୁ:
+#             {{
+#               "best_planting_time": "string",
+#               "irrigation_schedule": "string",
+#               "ai_suggestions": ["string1", "string2", "string3"]
+#             }}
+#             ସମସ୍ତ ଉତ୍ତର ଓଡ଼ିଆରେ ଦିଅନ୍ତୁ।
+#             """
+#         else:
+#             prompt = f"""
+#             A farmer in {filters.district}, {filters.region} is growing {filters.cropType}.
+#             Predicted yield: {ml_yield} tons/ha.
+#             Weather: {weather_data}
+#             Soil: {soil_data}
+#             Irrigation: {filters.irrigation}
+
+#             Return ONLY JSON in this exact format:
+#             {{
+#               "best_planting_time": "string",
+#               "irrigation_schedule": "string",
+#               "ai_suggestions": ["string1", "string2", "string3"]
+#             }}
+#             """
+        
+#         response = model.generate_content(prompt)
+#         raw_text = response.text.strip()
+#         raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+
+#         try:
+#             llm_data = json.loads(raw_text)
+#         except Exception:
+#             print("⚠️ Bad LLM JSON, falling back.")
+#             llm_data = {}
+
+#         # Language-specific fallbacks
+#         if filters.language == "hi":
+#             fallback_suggestions = [
+#                 "मिट्टी की नमी की नियमित निगरानी करें",
+#                 "सही वृद्धि चरणों में संतुलित उर्वरक डालें",
+#                 "एकीकृत कीट प्रबंधन लागू करें"
+#             ]
+#             fallback_planting = "अक्टूबर से नवंबर"
+#             fallback_irrigation = "वर्षा के आधार पर हर 7-10 दिन"
+#         elif filters.language == "or":
+#             fallback_suggestions = [
+#                 "ମାଟିର ଆର୍ଦ୍ରତା ନିୟମିତ ନିରୀକ୍ଷଣ କରନ୍ତୁ",
+#                 "ସଠିକ୍ ବୃଦ୍ଧି ପର୍ଯ୍ୟାୟରେ ସନ୍ତୁଳିତ ସାର ପ୍ରୟୋଗ କରନ୍ତୁ",
+#                 "ଏକୀକୃତ କୀଟ ପ୍ରବନ୍ଧନ ଲାଗୁ କରନ୍ତୁ"
+#             ]
+#             fallback_planting = "ଅକ୍ଟୋବରରୁ ନଭେମ୍ବର"
+#             fallback_irrigation = "ବର୍ଷା ଉପରେ ନିର୍ଭର କରି ପ୍ରତି 7-10 ଦିନ"
+#         else:
+#             fallback_suggestions = [
+#                 "Monitor soil moisture regularly",
+#                 "Apply balanced fertilizer at right growth stages",
+#                 "Implement integrated pest management"
+#             ]
+#             fallback_planting = "October to November"
+#             fallback_irrigation = "Every 7-10 days depending on rainfall"
+
+#         return {
+#             "expected_yield": ml_yield,
+#             "yield_trend": "stable",
+#             "best_planting_time": llm_data.get("best_planting_time", fallback_planting),
+#             "irrigation_schedule": llm_data.get("irrigation_schedule", fallback_irrigation),
+#             "ai_suggestions": llm_data.get("ai_suggestions", fallback_suggestions)
+#         }
+
+#     except Exception as e:
+#         print(f"Yield prediction error: {e}")
+#         # Language-specific fallbacks
+#         if filters.language == "hi":
+#             return {
+#                 "expected_yield": 75,
+#                 "yield_trend": "बढ़ रहा",
+#                 "best_planting_time": "अक्टूबर से नवंबर",
+#                 "irrigation_schedule": "वर्षा के आधार पर हर 7-10 दिन",
+#                 "ai_suggestions": [
+#                     "मिट्टी की नमी की नियमित निगरानी करें",
+#                     "सही वृद्धि चरणों में संतुलित उर्वरक डालें",
+#                     "एकीकृत कीट प्रबंधन लागू करें"
+#                 ]
+#             }
+#         elif filters.language == "or":
+#             return {
+#                 "expected_yield": 75,
+#                 "yield_trend": "ବୃଦ୍ଧି",
+#                 "best_planting_time": "ଅକ୍ଟୋବରରୁ ନଭେମ୍ବର",
+#                 "irrigation_schedule": "ବର୍ଷା ଉପରେ ନିର୍ଭର କରି ପ୍ରତି 7-10 ଦିନ",
+#                 "ai_suggestions": [
+#                     "ମାଟିର ଆର୍ଦ୍ରତା ନିୟମିତ ନିରୀକ୍ଷଣ କରନ୍ତୁ",
+#                     "ସଠିକ୍ ବୃଦ୍ଧି ପର୍ଯ୍ୟାୟରେ ସନ୍ତୁଳିତ ସାର ପ୍ରୟୋଗ କରନ୍ତୁ",
+#                     "ଏକୀକୃତ କୀଟ ପ୍ରବନ୍ଧନ ଲାଗୁ କରନ୍ତୁ"
+#                 ]
+#             }
+#         else:
+#             return {
+#                 "expected_yield": 75,
+#                 "yield_trend": "increasing",
+#                 "best_planting_time": "October to November",
+#                 "irrigation_schedule": "Every 7-10 days depending on rainfall",
+#                 "ai_suggestions": [
+#                     "Monitor soil moisture regularly",
+#                     "Apply balanced fertilizer at right growth stages",
+#                     "Implement integrated pest management"
+#                 ]
+#             }
+
+# @app.post("/api/advisory")
+# async def get_advisory(filters: FilterState):
+#     if not filters.district or not filters.region or not filters.cropType:
+#         return {"error": "Please select region, district and crop type to get recommendations"}
+    
+#     coords = get_coordinates(filters.district, filters.region)
+#     if not coords:
+#         return {"error": "Could not find location coordinates"}
+    
+#     weather_data = get_weather_data(coords["lat"], coords["lng"])
+#     soil_data = get_soil_data(filters.district, filters.region, filters.cropType, filters.language)
+#     market_data = get_market_data(filters.district, filters.region, filters.cropType, filters.language)
+#     yield_data = get_yield_prediction(filters, weather_data, soil_data)
+    
+#     try:
+#         model = genai.GenerativeModel("gemini-1.5-flash")
+        
+#         # Language-specific prompts for main recommendation
+#         if filters.language == "hi":
+#             prompt = f"""
+#             कृषि विशेषज्ञ के रूप में, {filters.district}, {filters.region} में {filters.cropType} उगाने वाले किसान के लिए बिल्कुल 10 विशिष्ट, क्रियान्वित करने योग्य सिफारिशें प्रदान करें:
+
+#             1. मिट्टी तैयारी: {filters.soilType} मिट्टी प्रकार
+#             2. बुवाई अनुसूची: {filters.season} मौसम के लिए अनुकूलतम समय
+#             3. सिंचाई: {filters.irrigation} उपलब्धता के अनुकूल विधियां
+#             4. उर्वरीकरण: {filters.fertilizer} प्रकार के लिए योजना
+#             5. कीट/रोग नियंत्रण: {filters.pestDisease} समस्याओं के लिए रणनीतियां
+#             6. मौसम अनुकूलन: वर्तमान परिस्थितियों {weather_data} का उपयोग
+#             7. बजट अनुकूलन: {filters.budget} बजट स्तर के लिए प्रथाएं
+#             8. उत्पादन सुधार: उत्पादन बढ़ाने की विशिष्ट तकनीकें
+#             9. कटाई: कटाई और कटाई के बाद की बेहतर प्रथाएं
+#             10. बाजार रणनीति: {market_data} रुझानों के आधार पर समय और दृष्टिकोण
+
+#             केवल संक्षिप्त, व्यावहारिक सलाह के साथ क्रमांकित सूची प्रदान करें। प्रत्येक बिंदु एक स्पष्ट कार्य आइटम होना चाहिए। कोई अतिरिक्त पाठ, व्याख्याएं, या स्वरूपण नहीं।
+#             सभी उत्तर हिंदी में दें।
+#             """
+#         elif filters.language == "or":
+#             prompt = f"""
+#             କୃଷି ବିଶେଷଜ୍ଞ ଭାବେ, {filters.district}, {filters.region}ରେ {filters.cropType} ଚାଷ କରୁଥିବା କୃଷକଙ୍କ ପାଇଁ ସଠିକ୍ 10ଟି ବିଶେଷ, କ୍ରିୟାନ୍ବୟନ ଯୋଗ୍ୟ ସୁପାରିଶ ପ୍ରଦାନ କରନ୍ତୁ:
+
+#             1. ମାଟି ପ୍ରସ୍ତୁତି: {filters.soilType} ମାଟି ପ୍ରକାର
+#             2. ବୀଜ ଚାଷ ସୂଚୀ: {filters.season} ଋତୁ ପାଇଁ ଉତ୍ତମ ସମୟ
+#             3. ଜଳସେଚନ: {filters.irrigation} ଉପଲବ୍ଧତା ପାଇଁ ଉପଯୁକ୍ତ ପଦ୍ଧତି
+#             4. ସାର ପ୍ରୟୋଗ: {filters.fertilizer} ପ୍ରକାର ପାଇଁ ଯୋଜନା
+#             5. କୀଟ/ରୋଗ ନିୟନ୍ତ୍ରଣ: {filters.pestDisease} ସମସ୍ୟାଗୁଡ଼ିକ ପାଇଁ ରଣନୀତି
+#             6. ପାଣିପାଗ ଅନୁକୂଳନ: ବର୍ତ୍ତମାନ ପରିସ୍ଥିତି {weather_data} ବ୍ୟବହାର କରନ୍ତୁ
+#             7. ବଜେଟ୍ ଅନୁକୂଳନ: {filters.budget} ବଜେଟ୍ ସ୍ତର ପାଇଁ ପଦ୍ଧତି
+#             8. ଉତ୍ପାଦନ ସୁଧାର: ଉତ୍ପାଦନ ବୃଦ୍ଧି ପାଇଁ ବିଶେଷ ପଦ୍ଧତି
+#             9. କାଟିବା: କାଟିବା ଏବଂ କାଟିବା ପରେ ଭଲ ପ୍ରଥା
+#             10. ବଜାର ରଣନୀତି: {market_data} ପ୍ରବୃତ୍ତି ଉପରେ ଆଧାରିତ ସମୟ ଏବଂ ପ୍ରବୃତ୍ତି
+#             କେବଳ ସଂକ୍ଷିପ୍ତ, ବ୍ୟବହାରିକ ପରାମର୍ଶ ସହିତ କ୍ରମିକ ତାଲିକା ପ୍ରଦାନ କରନ୍ତୁ। ପ୍ରତ୍ୟେକ ବିନ୍ଦୁ ଏକ ସ୍ପଷ୍ଟ କାର୍ଯ୍ୟ ଆଇଟମ୍ ହେବା ଉଚିତ। କୌଣସି ଅତିରିକ୍ତ ପାଠ୍ୟ, ବ୍ୟାଖ୍ୟା, କିମ୍ବା ଫର୍ମାଟିଂ ନୁହେଁ।
+#             ସମସ୍ତ ଉତ୍ତର ଓଡ଼ିଆ
+#             """
+#         else:
+#             prompt = f"""
+#             As an agricultural expert, provide exactly 10 specific, actionable recommendations for a farmer in {filters.district}, {filters.region} growing {filters.cropType}:
+
+#             1. Soil preparation: {filters.soilType} soil type
+#             2. Planting schedule: Optimal timing for {filters.season} season
+#             3. Irrigation: Methods suitable for {filters.irrigation} availability
+#             4. Fertilization: Plan for {filters.fertilizer} type
+#             5. Pest/disease control: Strategies for {filters.pestDisease} issues
+#             6. Weather adaptation: Using current conditions {weather_data}
+#             7. Budget optimization: Practices for {filters.budget} budget level
+#             8. Yield improvement: Specific techniques to increase production
+#             9. Harvesting: Best practices for harvesting and post-harvest handling
+#             10. Market strategy: Timing and approach based on {market_data} trends
+
+#             Provide only a numbered list with concise, practical advice. Each point should be one clear action item. No additional text, explanations, or formatting.
+#             """
+
+#         response = model.generate_content(prompt)
+#         recommendation = response.text
+#     except Exception as e:
+#         recommendation = "Unable to generate AI recommendations at this time. Please try again later."
+    
+#     return {
+#         "recommendation": recommendation,
+#         "weather_data": weather_data,
+#         "soil_data": soil_data,
+#         "market_data": market_data,
+#         "yield_data": yield_data,
+#         "timestamp": datetime.now().isoformat()  # Removed unused import
+#     }
+# @app.get("/")
+# def read_root():
+#     return {"message": "Farmer Advisory API is running"}
+
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
