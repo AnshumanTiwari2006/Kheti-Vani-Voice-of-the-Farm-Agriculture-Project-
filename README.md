@@ -186,6 +186,3 @@ git commit -m 'Add some AmazingFeature'
 git push origin feature/AmazingFeature
 # Then open a Pull Request
 ```
-
-- 📄 License
-- This project is licensed under the MIT License — see the LICENSE file for details.
