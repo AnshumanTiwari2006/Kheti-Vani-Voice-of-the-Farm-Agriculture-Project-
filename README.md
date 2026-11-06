@@ -186,5 +186,3 @@ git commit -m 'Add some AmazingFeature'
 git push origin feature/AmazingFeature
 # Then open a Pull Request
 ```
-
-## Try out :-)
